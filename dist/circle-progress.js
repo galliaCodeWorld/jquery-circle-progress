@@ -27,12 +27,6 @@ $.circleProgress = {
          * @type {float}
          */
         startAngle: -Math.PI,
-        
-        /**
-         * Reverse
-         * @type {boolean}
-         */
-        reverse: false,
 
         /**
          * Width of the arc. By default it's calculated as 1/14 of size, but you may set it explicitly in pixels
@@ -211,11 +205,7 @@ $.fn.circleProgress = function(config) {
         function drawArc(v) {
             ctx.save();
             ctx.beginPath();
-            if (!options.reverse) {
-                ctx.arc(radius, radius, radius - thickness / 2, startAngle, startAngle + Math.PI * 2 * v);
-            } else {
-                ctx.arc(radius, radius, radius - thickness / 2, startAngle - Math.PI * 2 * v, startAngle);
-            }
+            ctx.arc(radius, radius, radius - thickness / 2, startAngle, startAngle + Math.PI * 2 * v);
             ctx.lineWidth = thickness;
             ctx.strokeStyle = arcFill;
             ctx.stroke();
@@ -226,15 +216,10 @@ $.fn.circleProgress = function(config) {
             ctx.save();
             if (v < 1) {
                 ctx.beginPath();
-                if (v <= 0) {
+                if (v <= 0)
                     ctx.arc(radius, radius, radius - thickness / 2, 0, Math.PI * 2);
-                } else {
-                    if (!options.reverse) {
-                        ctx.arc(radius, radius, radius - thickness / 2, startAngle + Math.PI * 2 * v, startAngle);
-                    } else {
-                        ctx.arc(radius, radius, radius - thickness / 2, startAngle, startAngle - Math.PI * 2 * v);
-                    }
-                }
+                else
+                    ctx.arc(radius, radius, radius - thickness / 2, startAngle + Math.PI * 2 * v, startAngle);
                 ctx.lineWidth = thickness;
                 ctx.strokeStyle = emptyArcFill;
                 ctx.stroke();
