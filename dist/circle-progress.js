@@ -27,7 +27,7 @@ $.circleProgress = {
          * @type {float}
          */
         startAngle: -Math.PI,
-
+        
         /**
          * Width of the arc. By default it's calculated as 1/14 of size, but you may set it explicitly in pixels
          * type {int|'auto'}
@@ -71,7 +71,13 @@ $.circleProgress = {
          * @type {float}
          */
         animationStartValue: 0.0
-    }
+    },
+
+    /**
+     * Reverse animation and arc draw
+     * @type {boolean}
+     */
+    reverse: false
 };
 
 // Renamed ease-in-out-cubic
@@ -176,25 +182,37 @@ $.fn.circleProgress = function(config) {
         }
 
         if (options.fill.image) {
-            var img = new Image();
-            img.src = options.fill.image;
-            img.onload = function() {
-                var bg = $('<canvas>')[0];
-                bg.width = size;
-                bg.height = size;
-                bg.getContext('2d').drawImage(img, 0, 0, size, size);
-                arcFill = ctx.createPattern(bg, 'no-repeat');
+            var img;
 
-                // we need to redraw the arc when there is no animation
-                if (!options.animation)
-                    draw(value);
+            if (options.fill.image instanceof Image) {
+                img = options.fill.image;
+            } else {
+                img = new Image();
+                img.src = options.fill.image;
             }
+
+            if (img.complete)
+                setImageBG();
+            else
+                img.onload = setImageBG();
         }
 
         if (options.animation)
             drawAnimated(value);
         else
             draw(value);
+
+        function setImageBG() {
+            var bg = $('<canvas>')[0];
+            bg.width = size;
+            bg.height = size;
+            bg.getContext('2d').drawImage(img, 0, 0, size, size);
+            arcFill = ctx.createPattern(bg, 'no-repeat');
+
+            // we need to redraw the arc when there is no animation
+            if (!options.animation)
+                draw(value);
+        }
 
         function draw(v) {
             ctx.clearRect(0, 0, size, size);
@@ -205,7 +223,11 @@ $.fn.circleProgress = function(config) {
         function drawArc(v) {
             ctx.save();
             ctx.beginPath();
-            ctx.arc(radius, radius, radius - thickness / 2, startAngle, startAngle + Math.PI * 2 * v);
+            if (!options.reverse) {
+                ctx.arc(radius, radius, radius - thickness / 2, startAngle, startAngle + Math.PI * 2 * v);
+            } else {
+                ctx.arc(radius, radius, radius - thickness / 2, startAngle - Math.PI * 2 * v, startAngle);
+            }
             ctx.lineWidth = thickness;
             ctx.strokeStyle = arcFill;
             ctx.stroke();
@@ -216,10 +238,15 @@ $.fn.circleProgress = function(config) {
             ctx.save();
             if (v < 1) {
                 ctx.beginPath();
-                if (v <= 0)
+                if (v <= 0) {
                     ctx.arc(radius, radius, radius - thickness / 2, 0, Math.PI * 2);
-                else
-                    ctx.arc(radius, radius, radius - thickness / 2, startAngle + Math.PI * 2 * v, startAngle);
+                } else {
+                    if (!options.reverse) {
+                        ctx.arc(radius, radius, radius - thickness / 2, startAngle + Math.PI * 2 * v, startAngle);
+                    } else {
+                        ctx.arc(radius, radius, radius - thickness / 2, startAngle, startAngle - Math.PI * 2 * v);
+                    }
+                }
                 ctx.lineWidth = thickness;
                 ctx.strokeStyle = emptyArcFill;
                 ctx.stroke();
